@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+from gi.repository import Gdk
+import sys
+import subprocess
+import os
+
+def processPos(string):
+    arr = []
+    
+    num = ""
+    for c in string+"\0":
+        if c == " " or c == '\0':
+            arr.append(int(num))
+            num = ""
+        else:
+            num += c
+            
+    return arr
+            
+def toHex(color):
+    alpha = ['A','B','C','D','E','F']
+    string = "#"
+    for i in range(3):
+        divisor = str(int(color[i]/16))       
+        mod = str(color[i] % 16)
+        
+        divisor = alpha[5+int(divisor)-15] if int(divisor) > 9 else divisor
+        mod = alpha[5+int(mod)-15] if int(mod) > 9 else mod
+        
+        string = string + divisor + mod
+    return str(string)
+
+
+def PixelAt(x, y):
+  w = Gdk.get_default_root_window()
+  pb = Gdk.pixbuf_get_from_window(w, x, y, 1, 1)
+  return pb.get_pixels()
+
+
+pos = subprocess.check_output(['replaceme/global', '']).decode()
+newPos = processPos(pos)
+
+string = (toHex(list(PixelAt(newPos[0],newPos[1]))))
+command = "echo '"+string+"' | xclip -selection clipboard"
+os.system(command)
